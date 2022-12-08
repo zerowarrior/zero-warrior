@@ -1,0 +1,6 @@
+VRGDAs/=lib/VRGDAs/src/
+ds-test/=lib/ds-test/src/
+solmate/=lib/solmate/src/
+forge-std/=lib/forge-std/src/
+zero-issuance/=lib/zero-issuance/src/
+chainlink/=lib/chainlink/contracts/src/
