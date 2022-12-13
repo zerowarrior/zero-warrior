@@ -39,10 +39,6 @@ contract ZeroWarrior is WarriorERC721, LogisticVRGDA, Owned, ERC1155TokenReceive
 
     uint256 public constant LEGENDARY_SUPPLY = 10;
 
-    uint256 public constant TEAM_AMOUNT = 300;
-
-    uint256 public constant COMMUNITY_AMOUNT = 700;
-
     uint256 public constant RESERVED_SUPPLY = (MAX_SUPPLY - MINTLIST_SUPPLY - LEGENDARY_SUPPLY) / 5;
 
     uint256 public constant MAX_MINTABLE = MAX_SUPPLY
@@ -93,15 +89,12 @@ contract ZeroWarrior is WarriorERC721, LogisticVRGDA, Owned, ERC1155TokenReceive
 
     mapping(uint256 => mapping(address => mapping(uint256 => uint256))) public getCopiesOfZeroWarrioredByWarrior;
 
-    mapping(address => uint256) public teamAndCommunityMintedAmount;
-
     event ZeroBalanceUpdated(address indexed user, uint256 newZeroBalance);
 
     event WarriorClaimed(address indexed user, uint256 indexed warriorId);
     event WarriorPurchased(address indexed user, uint256 indexed warriorId, uint256 price);
     event LegendaryWarriorMinted(address indexed user, uint256 indexed warriorId, uint256[] burnedWarriorIds);
     event ReservedWarriorMinted(address indexed user, uint256 lastMintedWarriorId, uint256 numWarriorEach);
-    event teamAndCommunityMinted(address indexed user, uint256 lastMintedWarriorId, uint256 numWarriorEach);
 
     event RandomnessFulfilled(uint256 randomness);
     event RandomnessRequested(address indexed user, uint256 toBeRevealed);
@@ -114,7 +107,6 @@ contract ZeroWarrior is WarriorERC721, LogisticVRGDA, Owned, ERC1155TokenReceive
     error InvalidProof();
     error AlreadyClaimed();
     error MintStartPending();
-    error teamAndCommunityMintErr();
 
     error SeedPending();
     error RevealsPending();
@@ -499,36 +491,6 @@ contract ZeroWarrior is WarriorERC721, LogisticVRGDA, Owned, ERC1155TokenReceive
         currentNonLegendaryId = uint128(lastMintedWarriorId); // Set currentNonLegendaryId.
 
         emit ReservedWarriorMinted(msg.sender, lastMintedWarriorId, numWarriorEach);
-    }
-
-    function teamAndCommunityMint(address to, uint256 amount) external onlyOwner {
-        uint256 alreadyAmount = teamAndCommunityMintedAmount[to];
-        if (to == team && alreadyAmount < TEAM_AMOUNT) {
-            privateMint(team, alreadyAmount, amount, TEAM_AMOUNT);
-        } else if (to == community && alreadyAmount < COMMUNITY_AMOUNT) {
-            privateMint(community, alreadyAmount, amount, COMMUNITY_AMOUNT);
-        } else {
-            revert teamAndCommunityMintErr();
-        }    
-    }
-
-    function privateMint(
-        address sender,
-        uint256 alreadyAmount, 
-        uint256 amount, 
-        uint256 maxAmount
-    ) internal onlyOwner returns (uint256 lastMintedWarriorId) {
-        if (alreadyAmount + amount <= maxAmount) {
-            teamAndCommunityMintedAmount[sender] += amount;
-            lastMintedWarriorId = _batchMint(sender, amount, currentNonLegendaryId);
-            currentNonLegendaryId = uint128(lastMintedWarriorId);
-            emit teamAndCommunityMinted(msg.sender, lastMintedWarriorId, amount);
-        } else {
-            teamAndCommunityMintedAmount[sender] = maxAmount;
-            lastMintedWarriorId = _batchMint(sender, maxAmount - alreadyAmount, currentNonLegendaryId);
-            currentNonLegendaryId = uint128(lastMintedWarriorId);
-            emit teamAndCommunityMinted(msg.sender, lastMintedWarriorId, maxAmount - alreadyAmount);
-        }
     }
 
     function getWarriorEmissionMultiple(uint256 warriorId) external view returns (uint256) {
